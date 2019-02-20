@@ -14,35 +14,37 @@ unsigned long hash(char *str) {
   return hash;
 }
 
+/* create hashtable with size buckets */
 hashtable_t *make_hashtable(unsigned long size) {
   hashtable_t *ht = malloc(sizeof(hashtable_t));
   ht->size = size;
-  ht->buckets = calloc(sizeof(bucket_t *), size);
+  ht->buckets = calloc(sizeof(bucket_t *), size); /*initialize memory */
   return ht;
 }
 
 void ht_put(hashtable_t *ht, char *key, void *val) {
   /* FIXME: the current implementation doesn't update existing entries */
+  /* inserts key -> value mapping, updates value for key if already in hashtable*/
   unsigned int idx = hash(key) % ht->size;
-  int keyf =0;
-  bucket_t*it= ht->buckets[idx];
-  while(it){
-    if (!strcmp(it->key,key)){
-      keyf=1;
-      free(it->key);
-      free(it->val);
-      it->key=key;
-      it->val=val;
-      break; }
-    it=it-> next;
-  }
+  bucket_t *b = malloc(size, sizeof(bucket_t*)); /*allocate size of storage*/
+  b->key = key;
+  b->val = val;
+  b->next = ht->buckets[idx];
+  ht->buckets[idx] = b;
 
-  if(!key_found){ 
-    bucket_t *b = malloc(sizeof(bucket_t));
-    b->key = key;
-    b->val = val;
-    b->next = ht->buckets[idx];
-    ht->buckets[idx] = b;
+  bucket_t *prevb= b; /*assign pointers to prev and next*/
+  b= b-> next;
+
+  while (b) {
+    if (strcmp(b->key, key) ==0){   /*if keys match*/
+    prevb->next = b->next;
+    free(b->key);       /*avoid mem leak*/
+    free(b->val);
+    free(b);
+    return;
+  }
+  prevb=b;
+  b=b->next;
   }
 }
 
