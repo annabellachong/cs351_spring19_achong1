@@ -24,11 +24,26 @@ hashtable_t *make_hashtable(unsigned long size) {
 void ht_put(hashtable_t *ht, char *key, void *val) {
   /* FIXME: the current implementation doesn't update existing entries */
   unsigned int idx = hash(key) % ht->size;
-  bucket_t *b = malloc(sizeof(bucket_t));
-  b->key = key;
-  b->val = val;
-  b->next = ht->buckets[idx];
-  ht->buckets[idx] = b;
+  int keyf =0;
+  bucket_t*it= ht->buckets[idx];
+  while(it){
+    if (!strcmp(it->key,key)){
+      keyf=1;
+      free(it->key);
+      free(it->val);
+      it->key=key;
+      it->val=val;
+      break; }
+    it=it-> next;
+  }
+
+  if(!key_found){ 
+    bucket_t *b = malloc(sizeof(bucket_t));
+    b->key = key;
+    b->val = val;
+    b->next = ht->buckets[idx];
+    ht->buckets[idx] = b;
+  }
 }
 
 void *ht_get(hashtable_t *ht, char *key) {
