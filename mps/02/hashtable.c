@@ -24,20 +24,15 @@ hashtable_t *make_hashtable(unsigned long size) {
 
 void ht_put(hashtable_t *ht, char *key, void *val) {
   /* FIXME: the current implementation doesn't update existing entries */
-<<<<<<< HEAD
+
   // inserts key -> val mapping, updates keys
   unsigned int idx = hash(key) % ht->size;
-  bucket_t *b= malloc(sizeof(bucket_t));
-=======
-  /* inserts key -> value mapping, updates value for key if already in hashtable*/
-  unsigned int idx = hash(key) % ht->size;
-  bucket_t *b = malloc(size, sizeof(bucket_t*)); /*allocate size of storage*/
->>>>>>> 1bab96a2bf16e907874e7a1a63fe2542395fa9f0
+  bucket_t *b= malloc(sizeof(bucket_t)); /*allocate size of storage*/
   b->key = key;
   b->val = val;
   b->next = ht->buckets[idx];
   ht->buckets[idx] = b;
-<<<<<<< HEAD
+
   bucket_t *prev=b;
   b= b->next;
 
@@ -50,24 +45,8 @@ void ht_put(hashtable_t *ht, char *key, void *val) {
       return;
     }
     prev=b;       // else, move to next element
-    b= b->next
-=======
-
-  bucket_t *prevb= b; /*assign pointers to prev and next*/
-  b= b-> next;
-
-  while (b) {
-    if (strcmp(b->key, key) ==0){   /*if keys match*/
-    prevb->next = b->next;
-    free(b->key);       /*avoid mem leak*/
-    free(b->val);
-    free(b);
-    return;
-  }
-  prevb=b;
-  b=b->next;
->>>>>>> 1bab96a2bf16e907874e7a1a63fe2542395fa9f0
-  }
+    b= b->next;
+    }
 }
 
 void *ht_get(hashtable_t *ht, char *key) {
@@ -100,14 +79,15 @@ void ht_iter(hashtable_t *ht, int (*f)(char *, void *)) {
 void free_hashtable(hashtable_t *ht) {
   // frees all keys, vals, buckets
   bucket_t *b;
+
   unsigned long i;
-  for (i=0, i<ht ->size; i++){ // iterate through HT
+  for (i=0; i<ht ->size; i++){ // iterate through HT
     b = ht-> buckets[i];
     bucket_t *tmp= b;
-    while (b) {         // release pointers
+    while (b) {
       tmp=b;
-      b=b->next;
-      free(tmp->key);
+      b=b->next;        //reassign pointer
+      free(tmp->key);   // release pointers
       free(tmp-> val);
       free(tmp);
     }
@@ -121,7 +101,6 @@ void  ht_del(hashtable_t *ht, char *key) {
   // removes mapping for key
   unsigned int idx = hash(key) % ht->size;
   bucket_t *b = ht->buckets[idx];
-
 
   if(strcmp(b->key,key)==0){    //if elements match, free key and val
     ht-> buckets[idx] = b->next;
@@ -150,19 +129,31 @@ void  ht_rehash(hashtable_t *ht, unsigned long newsize) {
   hashtable_t *newht= make_hashtable(newsize);
 
   unsigned long i;
-  for (i=0; i<oldht->size, i++){
+  for (i=0; i<ht->size; i++){
     bucket_t *b = ht->buckets[i];
     while(b){
       ht_put(newht, b->key, b->val);
-      bucket_t *tmp=b;
+//      bucket_t *tmp=b;
       b= b->next ;
+//      free(tmp);
+    }
+  }
+  for (i=0; i<ht->size; i++){  // iterate through old ht and remove links
+    bucket_t *b = ht->buckets[i];
+    while(b){
+      bucket_t *tmp = b;
+      b = b->next;
       free(tmp);
     }
   }
-  ht->buckets = newht->buckets;
-  ht->size = newht->size; 
+
+/*  ht->buckets = newht->buckets;
+  ht->size = newht->size;
   free(ht->buckets);
   free(ht);
-  free(newht);
+  free(newht);*/
+  free(ht->buckets);
+  *ht= *newht;        // recreate pointers in new ht like old ht
+  free(newht);        // remove pointers
 
 }
