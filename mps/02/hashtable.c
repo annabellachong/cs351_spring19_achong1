@@ -25,25 +25,24 @@ void ht_put(hashtable_t *ht, char *key, void *val) {
   /* FIXME: the current implementation doesn't update existing entries */
   // inserts key -> val mapping, updates keys
   unsigned int idx = hash(key) % ht->size;
-  int keyexists =0;
-  bucket_t *temp = ht->buckets[idx];
-  while (temp) {
-    if (!strcmp(temp->key,key)){    //
-      keyexists=1;
-      free(temp->key);
-      free(temp->val);
-      temp-> key=key;
-      temp-> val= val;
-      break;
+  bucket_t *b= malloc(sizeof(bucket_t));
+  b->key = key;
+  b->val = val;
+  b->next = ht->buckets[idx];
+  ht->buckets[idx] = b;
+  bucket_t *prev=b; 
+  b= b->next;
+
+  while (b) {
+    if (strcmp(b->key,key)==0){    //if strings identical, key exists for element
+      prev->next = b->next;        // reassign pointers and free elements
+      free(b->key);
+      free(b->val);
+      free(b);
+      return;
     }
-    temp= temp->next;
-  }
-  if (!keyexists){  //if key doesn't exist, insert new key
-    bucket_t *b= malloc(sizeof(bucket_t));
-    b->key = key;
-    b->val = val;
-    b->next = ht->buckets[idx];
-    ht->buckets[idx] = b;
+    prev=b;       // else, move to next element
+    b= b->next
   }
 }
 
@@ -122,5 +121,7 @@ void  ht_del(hashtable_t *ht, char *key) {
 }
 
 void  ht_rehash(hashtable_t *ht, unsigned long newsize) {
-// what does this do
+// resizes ht to contain newsize buckets, rehash keys and move into new buckets
+//create a new ht with newsize buckets, re-assign pointers to new ht, delete old ht?
+
 }
