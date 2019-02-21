@@ -60,6 +60,7 @@ void *ht_get(hashtable_t *ht, char *key) {
 }
 
 void ht_iter(hashtable_t *ht, int (*f)(char *, void *)) {
+// calls f with all key/val mappings in HT
   bucket_t *b;
   unsigned long i;
   for (i=0; i<ht->size; i++) {
@@ -74,12 +75,52 @@ void ht_iter(hashtable_t *ht, int (*f)(char *, void *)) {
 }
 
 void free_hashtable(hashtable_t *ht) {
+  // frees all keys, vals, buckets
+  bucket_t *b;
+  unsigned long i;
+  for (i=0, i<ht ->size; i++){ // iterate through HT
+    b = ht-> buckets[i];
+    bucket_t *tmp= b;
+    while (b) {         // release pointers
+      tmp=b;
+      b=b->next;
+      free(tmp->key);
+      free(tmp-> val);
+      free(tmp);
+    }
+  }
+  free(ht->buckets);
   free(ht); // FIXME: must free all substructures!
 }
 
 /* TODO */
 void  ht_del(hashtable_t *ht, char *key) {
+  // removes mapping for key
+  unsigned int idx = hash(key) % ht->size;
+  bucket_t *b = ht->buckets[idx];
+
+
+  if(strcmp(b->key,key)==0){    //if elements match, free key and val
+    ht-> buckets[idx] = b->next;
+    free(b->key);
+    free(b->val);
+    free(b);
+    return;
+  }
+  bucket_t *next= b->next;      //otherwise, iterate through list for elemt
+  while(next) {
+    if (strcmp(next->key,key)==0){
+      free(next->key);            // free key and val
+      free(next->val);
+      b->next= next->next;
+      free(next);
+      return;
+    }
+    b=b->next;
+    next = next->next;
+  }
 }
 
 void  ht_rehash(hashtable_t *ht, unsigned long newsize) {
+// what does this do
 }
