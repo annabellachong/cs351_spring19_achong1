@@ -30,7 +30,7 @@ void ht_put(hashtable_t *ht, char *key, void *val) {
   b->val = val;
   b->next = ht->buckets[idx];
   ht->buckets[idx] = b;
-  bucket_t *prev=b; 
+  bucket_t *prev=b;
   b= b->next;
 
   while (b) {
@@ -123,5 +123,22 @@ void  ht_del(hashtable_t *ht, char *key) {
 void  ht_rehash(hashtable_t *ht, unsigned long newsize) {
 // resizes ht to contain newsize buckets, rehash keys and move into new buckets
 //create a new ht with newsize buckets, re-assign pointers to new ht, delete old ht?
+  hashtable_t *newht= make_hashtable(newsize);
+
+  unsigned long i;
+  for (i=0; i<oldht->size, i++){
+    bucket_t *b = ht->buckets[i];
+    while(b){
+      ht_put(newht, b->key, b->val);
+      bucket_t *tmp=b;
+      b= b->next ;
+      free(tmp);
+    }
+  }
+  ht->buckets = newht->buckets;
+  ht->size = newht->size; 
+  free(ht->buckets);
+  free(ht);
+  free(newht);
 
 }
