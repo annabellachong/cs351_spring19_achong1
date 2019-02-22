@@ -144,4 +144,3 @@ void  ht_rehash(hashtable_t *ht, unsigned long newsize) {
   free(newht);        // remove pointers
 
   }
-}
