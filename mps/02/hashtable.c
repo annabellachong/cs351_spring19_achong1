@@ -138,22 +138,10 @@ void  ht_rehash(hashtable_t *ht, unsigned long newsize) {
 //      free(tmp);
     }
   }
-  for (i=0; i<ht->size; i++){  // iterate through old ht and remove links
-    bucket_t *b = ht->buckets[i];
-    while(b){
-      bucket_t *tmp = b;
-      b = b->next;
-      free(tmp);
-    }
-  }
 
-/*  ht->buckets = newht->buckets;
-  ht->size = newht->size;
-  free(ht->buckets);
-  free(ht);
-  free(newht);*/
-  free(ht->buckets);
-  *ht= *newht;        // recreate pointers in new ht like old ht
+  *ht= *newht;        // reassign pointers in new ht like old ht
+  free_hashtable(ht); // delete old hashtable
   free(newht);        // remove pointers
 
+  }
 }
