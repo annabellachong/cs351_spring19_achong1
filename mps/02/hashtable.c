@@ -127,20 +127,30 @@ void  ht_rehash(hashtable_t *ht, unsigned long newsize) {
 // resizes ht to contain newsize buckets, rehash keys and move into new buckets
 //create a new ht with newsize buckets, re-assign pointers to new ht, delete old ht?
   hashtable_t *newht= make_hashtable(newsize);
+  bucket_t *b;
+  bucket_t *tmp;
 
   unsigned long i;
   for (i=0; i<ht->size; i++){
-    bucket_t *b = ht->buckets[i];
+    b = ht->buckets[i];
     while(b){
-      ht_put(newht, b->key, b->val);
-//      bucket_t *tmp=b;
-      b= b->next ;
-//      free(tmp);
+      char *newkey = malloc(strlen(b->key)+1); // create pointers and copy each key and value
+      void *newval = malloc(strlen(b->val)+1);
+      strcpy(newkey, b->key);
+      strcpy(newval, b->val);
+      ht_put(newht, newkey, newval);      // put data into new hashtable
+      tmp = b;
+
+      b = b->next;              //reassign pointers
+      free(tmp->key);
+      free(tmp-> val);
+      free(tmp);
     }
   }
 
-  *ht= *newht;        // reassign pointers in new ht like old ht
-  free_hashtable(ht); // delete old hashtable
+  //free_hashtable(ht);// doesn't work, no time
+  free(ht->buckets);
+  *ht= *newht;        // reassign pointers from old to new
   free(newht);        // remove pointers
 
   }
