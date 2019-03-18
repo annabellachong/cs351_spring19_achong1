@@ -165,6 +165,7 @@ void eval(char *cmdline)
 {
   /* the following code demonstrates how to use parseline --- you'll
    * want to replace most of it (at least the print statements). */
+ // avoid race condition, PM III, IV part 3
   char *argv[MAXARGS];
   int bg;
   pid_t pid;
@@ -180,19 +181,28 @@ void eval(char *cmdline)
     return;
   }
 
+  //sigset_t mask_all, mask_one, prev_one;
+  sigemptyset(&mask);
+  sigaddset(&mask, SIGCHLD);
+  sigprocmask(SIG_BLOCK, &mask, NULL); //block sigchld
+
   if(!builtin_cmd(argv)) {    // if does not match any commands
     if ((pid = fork())== 0) {    //     // child runs user job
       setpgrp();
-      execvp(argv[0],argv);
-      printf("%s: Command not found\n", argv[0]);
-      exit(0);
+      sigprocmask(SIG_UNBLOCK, &mask, NULL); // unblock sigchld
+
+      if (execvp(argv[0],argv)<0);{
+        printf("%s: Command not found\n");
+        exit(0);
+      }
     } else {
       addjob(jobs,pid, bg?BG:FG, cmdline);
     }
   }
+  sigprocmask(SIG_UNBLOCK, &mask, NULL); //unblock sigchld (parent)
 
   if (!bg) {
-    waitfg(pid);
+    waitfg(pid);      // wait for fg jobs to terminate
   } else {
     struct job_t *job = getjobjid(jobs,pid);
     printf("[%d] %d %s", job->jid, job->pid, job->cmdline);
@@ -264,10 +274,10 @@ int parseline(const char *cmdline, char **argv)
 int builtin_cmd(char **argv)
 {
 
-  if (strcmp(argv[0], "quit")==0){
+  if (!strcmp(argv[0], "quit")){  // pg 736
     exit(0);
   }
-  if ((strcmp(argv[0], "fg") || strcmp(argv[0], "bg"))==0){
+  if (!(strcmp(argv[0], "fg") || strcmp(argv[0], "bg"))){
     do_bgfg(argv);
     return 1;
     }
@@ -288,11 +298,36 @@ void do_bgfg(char **argv)
   pid_t pid;
   struct job_t* job;
 
-  if (argv[1]==NULL){
-    printf("%sCommand requires PID or jobID argument\n", argv[0]);
+  if (argv[1]==NULL){ // if no pid
+    printf("%sCommand requires PID or jobID argument\n", argv[0]);  // if argument is null
     return;
     }
-  if( )
+  if(argv[1][0]== '%'){  // if job id
+    strcpy(argv[1], &argv[1][1]);
+    if (!(jid)= atoi(argv[1]))){
+      printf("%s:Argument must be PID or jobID\n", argv[0] );
+      return;
+    }
+
+  job = getjobjid(jobs, jid); 
+  if (job == NULL){   // check if jobs exists
+    if (argv[1][0] ==1){
+      printf("%%%s: No such job\n", argv[1]);
+    return;
+  } else {
+    if (!strcmp("fg", argv[0])){
+      job-> state = FG;
+      kill(-job->pid, SIGCONT);
+      waitfg(job->pid);
+      return;
+    } else {
+      job->state=BG;
+      printf("[%d] (%d) %s", job->jid, job->pid, job->cmdline);
+
+    }
+  }
+  }
+  }
 
   return;
 }
@@ -300,8 +335,7 @@ void do_bgfg(char **argv)
 /*
  * waitfg - Block until process pid is no longer the foreground process
  */
-void waitfg(pid_t pid)
-{
+void waitfg(pid_t pid){
     while (fgpid(jobs)){ //wait for fg
       sleep(1)
     }
