@@ -309,9 +309,9 @@ void do_bgfg(char **argv)
       return;
     }
 
-  job = getjobjid(jobs, jid); 
+  job = getjobjid(jobs, jid);
   if (job == NULL){   // check if jobs exists
-    if (argv[1][0] ==1){
+//  if (argv[1][0] ==1){
       printf("%%%s: No such job\n", argv[1]);
     return;
   } else {
@@ -322,8 +322,9 @@ void do_bgfg(char **argv)
       return;
     } else {
       job->state=BG;
+      kill(-job->pid, SIGCONT);
       printf("[%d] (%d) %s", job->jid, job->pid, job->cmdline);
-
+      return;
     }
   }
   }
