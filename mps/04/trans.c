@@ -60,6 +60,56 @@ char trans64_desc[]= "Row by row transpose-64 byte-sized blocks";
 void trans64(int M, int N, int A[N][M], int B[M][N]){
 
        int i, j, col, row, temp[8]; //initialize variables
+       for (col = 0; col < N; col += 8) {
+         for (row = 0; row < N; row += 8) {// transpose first 4 rows of the 8x8 block and store each row in temp
+           for (i = 0; i < 4; i++) {
+             for (j = 0; j < 8; j++) { // store a row in temp
+               temp[j] = A[col + i][row + j];
+             }
+             for (j = 0; j < 4; j++) {
+               B[row + j][col + i] = temp[j];
+             }
+             for (j = 0; j < 3; j++) {
+               B[row + j][col + i + 4] = temp[j + 5];
+             }
+             B[row + 3][col + i + 4] = temp[4];
+          }
+
+           for (j = 0; j < 4; j++) { // any remaining values not in final pos
+             temp[j] = A[col + j + 4][row + 4];
+           }
+           for (j = 0; j < 4; j++) {
+             temp[j + 4] = A[col + j + 4][row + 3];
+           }
+           for (j = 0; j < 4; j++) {
+             B[row + 4][col + j] = B[row + 3][col + j + 4];
+           }
+           for (j = 0; j < 4; j++) {
+             B[row + 4][col + j + 4] = temp[j];
+           }
+           for (j = 0; j < 4; j++) {
+             B[row + 3][col + j + 4] = temp[j + 4];
+           }
+           //first four rows done
+           for (i = 0; i < 3; i++) {   // transpose lower half of the 8x8 block
+              for (j = 0; j < 4; j++) {
+                temp[j] = A[col + j + 4][row + i + 5];
+              }
+              for (j = 0; j < 4; j++) {
+                temp[j + 4] = A[col + j + 4][row + i];
+              }
+              for (j = 0; j < 4; j++) {
+                B[row + i + 5][col + j] = B[row + i][col + j + 4];
+              }
+              for (j = 0; j < 4; j++) {
+                B[row + i + 5][col + j + 4] = temp[j];
+              }
+              for (j = 0; j < 4; j++) {
+                B[row + i][col + j + 4] = temp[j + 4];
+              }
+            }
+        }
+    }
 
 }
 
