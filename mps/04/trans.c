@@ -32,6 +32,28 @@ void transpose_submit(int M, int N, int A[N][M], int B[M][N])
     blockSize=16;
   }
 
+  int size= 256; // 2^5blocks * 8 bits
+   int blockSize, tmp;
+   if (M == N)
+         blockSize = size / N;
+     else
+         blockSize = 16;
+
+     for (int j1 = 0; j1 < M; j1 += blockSize) {
+         for (int i1 = 0; i1 < N; i1 += blockSize) { //transpose each block
+             for (int i = i1; i < i1 + blockSize && i < N; i++) {
+                 for (int j = j1; j < j1 + blockSize && j < M; j++) {
+                     if (i != j)
+                         B[j][i] = A[i][j];
+                     else
+                         tmp = A[i][i];
+                 }
+
+                 if (i1 == j1)
+                     B[i][i] = tmp;
+             }
+         }
+     }
 
 
 }
