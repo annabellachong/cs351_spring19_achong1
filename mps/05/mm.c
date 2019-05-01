@@ -36,6 +36,7 @@ struct footer{
 
 
 int max_fbs=0; // maximum free block size
+void *find_block(size_t size);
 
 /*
  * mm_init - initialize the malloc package.
@@ -71,13 +72,13 @@ void *mm_malloc(size_t size)
       }
     }
     else { //found block, try to use as little space
-      if (((hp -> size)&~1) - newsize>= 0x7 +HEADER_SIZE+FOOTER_SIZE{ // split block into allocated and free
+      if (((hp -> size)&~1) - newsize>= 0x7 +HEADER_SIZE+FOOTER_SIZE){ // split block into allocated and free
         header_t *lft= (header_t *)((char *)hp +newsize);
         lft -> size = bp -> size-newsize;
         lft-> size &= ~1;
         hp-> size= newsize;
         hp -> size |= 1; // mark block as allocated
-        ((footer_t *)((char *)hp +((hp ->size)&~1) - FOOTERSIZE))-> head_r= hp; //add footer to block
+        ((footer_t *)((char *)hp +((hp ->size)&~1) - FOOTER_SIZE))-> head_r= hp; //add footer to block
         footer_t *lftf = (footer_t *)((char*)lft +((lft->size)&~1)- FOOTER_SIZE);
         lftf->head_r = lft;
         lft -> next = hp -> next;
@@ -95,9 +96,19 @@ void *mm_malloc(size_t size)
 
 void *find_block(size_t size)
 {
-
-
+  header_t *p;
+  if (size <max_fbs){
+    for (p= BLOCK_START->next; p!=mem_heap_lo() && p->size <size; p=p->next);
+    if (p!=mem_heap_lo()){
+      return p;
+      }
+    else
+      return NULL;
+  }else{
+    return NULL;
+  }
 }
+
 /*
  * mm_free - Freeing a block does nothing.
  */
