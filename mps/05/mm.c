@@ -18,16 +18,41 @@
 
 
 #define SIZE_T_SIZE (ALIGN(sizeof(size_t)))
+#define HEADER_SIZE ALIGN(sizeof(header_t))
+#define FOOTER_SIZE ALIGN(sizeof(footer_t))
+#define HEAP_START ((header_t *)mem_heap_lo())
 
-/* 
+typedef struct header header_t;
+struct header{
+  size_t size;
+  header_t *next;
+  header_t *prev;
+};
+
+typedef struct footer footer_t;
+struct footer{
+  header_t *head_r;
+};
+
+
+int freeblocks=0;
+
+/*
  * mm_init - initialize the malloc package.
  */
 int mm_init(void)
 {
+  header_t *p= mem_sbrk(HEADER_SIZE + FOOTER_SIZE);
+  p -> size = HEADER_SIZE + FOOTER_SIZE;
+  p-> next=p;
+  p-> prev=p;
+  footer_t *ft = (footer_t *)((char *)p + HEADER_SIZE);
+  ft -> head_r =p;
+  freeblocks =0;
   return 0;
 }
 
-/* 
+/*
  * mm_malloc - Allocate a block by incrementing the brk pointer.
  *     Always allocate a block whose size is a multiple of the alignment.
  */
@@ -58,7 +83,7 @@ void *mm_realloc(void *ptr, size_t size)
   void *oldptr = ptr;
   void *newptr;
   size_t copySize;
-    
+
   newptr = mm_malloc(size);
   if (newptr == NULL)
     return NULL;
