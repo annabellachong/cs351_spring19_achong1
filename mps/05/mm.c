@@ -119,7 +119,7 @@ void mm_free(void *ptr)
   hp-> size &=~1; //mark as free
 
   int next_a, prev_a;
-  header_t *hp_next= ((header_t*)((char*)hp - FOOTER_SIZE))-> head_r;
+  header_t *hp_next= ((footer_t*)((char*)hp - FOOTER_SIZE))-> head_r;
   header_t *hp_prev= (header_t*)((char*)hp +hp->size);
 
   if (hp_next!= BLOCK_START){ //mark bit as 1 if next block is allocated, 0 if free
@@ -163,5 +163,32 @@ void mm_free(void *ptr)
  */
 void *mm_realloc(void *ptr, size_t size)
 {
-  
+  size_t newsize = ALIGN(size + HEADER_SIZE + FOOTER_SIZE);
+  header_t *hp = (header_t *)((char *)ptr - HEADER_SIZE);
+  header_t *hp_next = (header_t *)((char *)hp + (hp->size &= ~1));
+  if (((void *)((char *)hp + hp->size) >= mem_heap_hi())) {
+    mem_sbrk(newsize - hp->size);
+    hp->size = newsize;
+    ((footer_t *)((char *)hp + (hp->size&~1) - FOOTER_SIZE))->head_r = hp;
+    return ptr;
+  }
+
+  if (((hp_next->size)&1) == 0 && hp_next!=BLOCK_START) {
+    if (hp_next->size + (hp->size&~1) > newsize) {
+      if (((void *)((char *)hp + hp->size) <= mem_heap_hi())) {
+        hp->size = (hp->size + hp_next->size) | 1;
+        ((footer_t *)((char *)hp + ((hp->size)&~1) - FOOTER_SIZE))->head_r = hp;
+        hp_next->prev->next = hp_next->next;
+        hp_next->next->prev = hp_next->prev;
+        return ptr;
+      }
+    }
+  }
+  if ((hp->size&~1) > newsize) {
+    return ptr;
+  }
+  void *new_ptr = mm_malloc(size);
+  memcpy(new_ptr,ptr,hp->size - HEADER_SIZE - FOOTER_SIZE);
+  mm_free(ptr);
+return new_ptr;
 }
