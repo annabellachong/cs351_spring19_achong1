@@ -92,6 +92,7 @@ void *mm_malloc(size_t size)
         hp -> next->prev= hp->prev;
       }
     }
+    return (char *)hp + HEADER_SIZE;
 }
 
 void *find_block(size_t size) // if size is bigger than the maximum free block, return null
