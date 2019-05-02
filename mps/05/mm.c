@@ -60,7 +60,7 @@ int mm_init(void)
 void *mm_malloc(size_t size)
 {
     size_t newsize = ALIGN(size + HEADER_SIZE + FOOTER_SIZE); // size_t_size
-    header_t *hp= find_block(newsize);
+    header_t *hp= find_block(newsize); //find block that fits
     if (hp == NULL){   // no free blocks
       hp = mem_sbrk(newsize);
       if ((long)hp ==-1)
@@ -94,7 +94,7 @@ void *mm_malloc(size_t size)
     }
 }
 
-void *find_block(size_t size)
+void *find_block(size_t size) // if size is bigger than the maximum free block, return null
 {
   header_t *p;
   if (size <max_fbs){
