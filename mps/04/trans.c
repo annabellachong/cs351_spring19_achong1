@@ -10,6 +10,10 @@
 #include <stdio.h>
 #include "cachelab.h"
 
+void trans64(int M, int N, int A[N][M], int B[M][N]);
+void trans32(int M, int N, int A[N][M], int B[M][N]); 
+
+
 int is_transpose(int M, int N, int A[N][M], int B[M][N]);
 
 /*
