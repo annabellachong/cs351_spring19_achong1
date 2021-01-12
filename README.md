@@ -1,6 +1,5 @@
 # CS 351 Code Repository
 
-Annabella Chong  
-A20386586  
+Annabella Chong   
 achong1@hawk.iit.edu  
 
